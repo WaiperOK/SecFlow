@@ -1,0 +1,190 @@
+# SecFlow Configuration
+# Enterprise Security Framework for DevSecOps Integration
+
+# Core project settings
+project_name: "SecFlow Security Framework"
+target_directories:
+  - "."
+  - "pyseckit/"
+
+# Глобальные паттерны исключений
+exclude_patterns:
+  - "*.git*"
+  - "*.svn*"
+  - "*.hg*"
+  - "*node_modules*"
+  - "*venv*"
+  - "*env*"
+  - "*.pyc"
+  - "*.pyo"
+  - "*.egg-info*"
+  - "*__pycache__*"
+  - "*.coverage*"
+  - "*dist*"
+  - "*build*"
+  - "*tests*"
+  - "*test*"
+
+# Настройки сканнеров
+scanners:
+  # Bandit - статический анализ Python кода
+  bandit:
+    enabled: true
+    timeout: 300
+    severity_threshold: "low"
+    exclude_patterns:
+      - "*/tests/*"
+      - "*/test_*"
+    args:
+      - "--skip"
+      - "B101"  # Пропускаем assert_used
+      - "--skip"
+      - "B601"  # Пропускаем shell injection warnings для тестов
+    rules:
+      # Кастомные правила Bandit
+      skip_tests:
+        - "B101"  # assert_used
+        - "B601"  # shell_injection_other
+  
+  # Semgrep - многоязычный статический анализ
+  semgrep:
+    enabled: true
+    timeout: 600
+    severity_threshold: "medium"
+    args:
+      - "--config=auto"
+      - "--config=p/security-audit"
+      - "--config=p/owasp-top-ten"
+    exclude_patterns:
+      - "*/tests/*"
+      - "*/examples/*"
+  
+  # Safety - проверка уязвимых зависимостей Python
+  safety:
+    enabled: true
+    timeout: 180
+    severity_threshold: "medium"
+    args:
+      - "--full-report"
+      - "--continue-on-error"
+
+  # OWASP ZAP - динамическое тестирование
+  zap:
+    enabled: false  # Отключено по умолчанию, требует настройки
+    timeout: 1800
+    args:
+      - "--spider"
+      - "--ajax-spider"
+
+  # GitLeaks - поиск секретов
+  gitleaks:
+    enabled: false  # Отключено для разработки
+    timeout: 300
+    args:
+      - "--verbose"
+
+  # TruffleHog - поиск секретов
+  trufflehog:
+    enabled: false  # Отключено для разработки
+    timeout: 600
+
+  # Checkov - проверка IaC
+  checkov:
+    enabled: false  # Отключено, так как нет IaC файлов
+    timeout: 300
+
+# Настройки отчётов
+reporting:
+  output_dir: "./reports"
+  formats:
+    - "json"
+    - "html"
+    - "csv"
+  template_dir: null  # Используем встроенные шаблоны
+  include_metadata: true
+  group_by_severity: true
+
+# Настройки CI/CD интеграции
+cicd:
+  fail_on_critical: true
+  fail_on_high: false
+  max_issues: 100  # Максимальное количество проблем для прохождения
+  notifications:
+    slack:
+      enabled: false
+      webhook_url: ""
+      channel: "#security"
+    email:
+      enabled: false
+      smtp_server: ""
+      recipients: []
+
+# Настройки для облачных провайдеров
+cloud:
+  aws_profile: null
+  azure_subscription: null
+  gcp_project: null
+  scan_terraform: true
+  scan_cloudformation: true
+
+# Интеграции
+integrations:
+  # Elasticsearch для централизованного хранения результатов
+  elasticsearch:
+    enabled: false
+    hosts: ["localhost:9200"]
+    username: ""
+    password: ""
+    ssl: false
+    verify_certs: true
+    index_prefix: "pyseckit"
+    
+  # Уведомления
+  notifications:
+    slack:
+      enabled: false
+      webhook_url: ""
+      channel: "#security"
+      username: "PySecKit"
+      icon_emoji: ":shield:"
+      
+    teams:
+      enabled: false
+      webhook_url: ""
+      
+    email:
+      enabled: false
+      smtp_server: ""
+      smtp_port: 587
+      username: ""
+      password: ""
+      from_email: ""
+      to_emails: []
+      use_tls: true
+
+# Плагины
+plugins:
+  discovery_paths:
+    - "./plugins"
+    - "~/.pyseckit/plugins"
+  custom_scanners:
+    - name: "custom-pattern-scanner"
+      patterns:
+        - "password\\s*=\\s*[\"'][^\"']+[\"']"
+        - "api_key\\s*=\\s*[\"'][^\"']+[\"']"
+
+plugin_directories: []
+
+# Веб-интерфейс
+web:
+  enabled: true
+  host: "127.0.0.1"
+  port: 5000
+  debug: false
+
+# Threat Modeling
+threat_modeling:
+  auto_generate: true
+  output_formats: ["json", "yaml"]
+  include_mitigations: true
+  include_attack_vectors: true 
