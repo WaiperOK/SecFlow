@@ -9,7 +9,7 @@ import yaml
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .exceptions import ConfigurationException
 
@@ -24,7 +24,8 @@ class ScannerConfig(BaseModel):
     exclude_patterns: List[str] = Field(default_factory=list, description="Паттерны исключений")
     severity_threshold: str = Field(default="low", description="Минимальный уровень критичности")
     
-    @validator('severity_threshold')
+    @field_validator("severity_threshold")
+    @classmethod
     def validate_severity(cls, v: str) -> str:
         """Валидирует уровень критичности."""
         valid_severities = ['critical', 'high', 'medium', 'low', 'info']
@@ -89,9 +90,7 @@ class Config(BaseModel):
     plugins: List[str] = Field(default_factory=list, description="Список плагинов")
     plugin_directories: List[str] = Field(default_factory=list, description="Директории плагинов")
     
-    class Config:
-        """Конфигурация модели."""
-        extra = "allow"  # Разрешаем дополнительные поля
+    model_config = ConfigDict(extra="allow")
     
     @classmethod
     def from_file(cls, config_path: Union[str, Path]) -> "Config":
@@ -131,7 +130,7 @@ class Config(BaseModel):
             if data is None:
                 data = {}
                 
-            return cls.parse_obj(data)
+            return cls.model_validate(data)
             
         except yaml.YAMLError as e:
             raise ConfigurationException(
@@ -195,7 +194,7 @@ class Config(BaseModel):
         if cloud_data:
             data["cloud"] = cloud_data
         
-        return cls.parse_obj(data)
+        return cls.model_validate(data)
     
     def to_file(self, config_path: Union[str, Path], format: str = "yaml") -> None:
         """
@@ -212,7 +211,7 @@ class Config(BaseModel):
         config_path.parent.mkdir(parents=True, exist_ok=True)
         
         try:
-            data = self.dict(exclude_none=True)
+            data = self.model_dump(exclude_none=True)
             
             with open(config_path, 'w', encoding='utf-8') as f:
                 if format.lower() in ['yml', 'yaml']:

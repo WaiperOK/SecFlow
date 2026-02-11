@@ -98,7 +98,7 @@ def scan(ctx: click.Context, target: str, scanner: tuple, output: Optional[str],
     for scanner_name in scanners_to_use:
         if scanner_name in available_scanners:
             scanner_config = config.get_scanner_config(scanner_name)
-            scanner_instance = available_scanners[scanner_name](scanner_config.dict())
+            scanner_instance = available_scanners[scanner_name](scanner_config.model_dump())
             manager.register_scanner(scanner_instance)
     
     # Получаем список доступных сканнеров

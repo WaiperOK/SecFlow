@@ -13,7 +13,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .exceptions import ScannerException
 
@@ -63,17 +63,15 @@ class ScanResult(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Дополнительные метаданные")
     timestamp: float = Field(default_factory=time.time, description="Время обнаружения")
     
-    class Config:
-        """Конфигурация модели."""
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
         
     def to_dict(self) -> Dict[str, Any]:
         """Конвертирует результат в словарь."""
-        return self.dict()
+        return self.model_dump()
     
     def to_json(self) -> str:
         """Конвертирует результат в JSON."""
-        return self.json(indent=2)
+        return self.model_dump_json(indent=2)
 
 
 @dataclass

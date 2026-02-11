@@ -1,77 +1,107 @@
+"""SecFlow core package exports.
+
+This module keeps imports lightweight so users can import core components
+without pulling optional integrations (web, Elasticsearch, notifications).
 """
-PySecKit - Универсальный фреймворк для интеграции Security в процессы разработки и CI/CD.
 
-Поддерживает SAST, DAST, secret-scanning, threat modeling, отчёты и оповещения.
-"""
+from __future__ import annotations
 
-__version__ = "1.0.0"
-__author__ = "PySecKit Contributors"
-__email__ = "info@pyseckit.org"
+__version__ = "1.1.0"
+__author__ = "SecFlow Contributors"
+__email__ = "team@secflow.dev"
 
-from .core.scanner import Scanner, ScanResult, ScannerManager
 from .core.config import Config
-from .core.exceptions import PySecKitException, ScannerException
-from .reporting.manager import ReportManager
-from .ci_cd.manager import CICDManager
-
-# Импорт сканнеров
-from .sast import BanditScanner, SemgrepScanner, SafetyScanner
-from .dast import ZapScanner
-from .secret_scan import GitleaksScanner, TruffleHogScanner
-from .cloud import CheckovScanner
-from .threat_model import ThreatModelGenerator, AdvancedThreatModelGenerator
-
-# Импорт расширенных модулей
-from .plugins import PluginRegistry, PluginBase, ScannerPlugin
-from .integrations import ElasticsearchIntegration, NotificationManager, SlackNotifier, TeamsNotifier
-from .web import create_app, api_bp, dashboard_bp
+from .core.exceptions import ConfigurationException, PySecKitException, ScannerException
+from .core.scanner import ScanResult, Scanner, ScannerManager
+from .sast import BanditScanner, SafetyScanner, SemgrepScanner
 
 __all__ = [
-    # Основные классы
-    "Scanner",
-    "ScanResult", 
-    "ScannerManager",
     "Config",
+    "ConfigurationException",
     "PySecKitException",
     "ScannerException",
-    "ReportManager",
-    "CICDManager",
-    
-    # SAST сканнеры
+    "Scanner",
+    "ScanResult",
+    "ScannerManager",
     "BanditScanner",
-    "SemgrepScanner", 
+    "SemgrepScanner",
     "SafetyScanner",
-    
-    # DAST сканнеры
-    "ZapScanner",
-    
-    # Secret сканнеры
-    "GitleaksScanner",
-    "TruffleHogScanner",
-    
-    # Cloud сканнеры
-    "CheckovScanner",
-    
-    # Threat modeling
-    "ThreatModelGenerator",
-    "AdvancedThreatModelGenerator",
-    
-    # Система плагинов
-    "PluginRegistry",
-    "PluginBase", 
-    "ScannerPlugin",
-    
-    # Интеграции
-    "ElasticsearchIntegration",
-    "NotificationManager",
-    "SlackNotifier",
-    "TeamsNotifier",
-    
-    # Веб-интерфейс
-    "create_app",
-    "api_bp",
-    "dashboard_bp",
 ]
 
-# Версия библиотеки для совместимости
-VERSION = __version__ 
+# Optional modules are exported only when their dependencies are available.
+try:
+    from .reporting.manager import ReportManager
+
+    __all__.append("ReportManager")
+except Exception:  # pragma: no cover - optional dependency surface
+    pass
+
+try:
+    from .dast import ZapScanner
+
+    __all__.append("ZapScanner")
+except Exception:  # pragma: no cover - optional dependency surface
+    pass
+
+try:
+    from .secret_scan import GitleaksScanner, TruffleHogScanner
+
+    __all__.extend(["GitleaksScanner", "TruffleHogScanner"])
+except Exception:  # pragma: no cover - optional dependency surface
+    pass
+
+try:
+    from .cloud import CheckovScanner
+
+    __all__.append("CheckovScanner")
+except Exception:  # pragma: no cover - optional dependency surface
+    pass
+
+try:
+    from .threat_model import AdvancedThreatModelGenerator, ThreatModelGenerator
+
+    __all__.extend(["ThreatModelGenerator", "AdvancedThreatModelGenerator"])
+except Exception:  # pragma: no cover - optional dependency surface
+    pass
+
+try:
+    from .ci_cd.manager import CICDManager
+
+    __all__.append("CICDManager")
+except Exception:  # pragma: no cover - optional dependency surface
+    pass
+
+try:
+    from .integrations import (
+        ElasticsearchIntegration,
+        NotificationManager,
+        SlackNotifier,
+        TeamsNotifier,
+    )
+
+    __all__.extend(
+        [
+            "ElasticsearchIntegration",
+            "NotificationManager",
+            "SlackNotifier",
+            "TeamsNotifier",
+        ]
+    )
+except Exception:  # pragma: no cover - optional dependency surface
+    pass
+
+try:
+    from .plugins import PluginBase, PluginRegistry, ScannerPlugin
+
+    __all__.extend(["PluginRegistry", "PluginBase", "ScannerPlugin"])
+except Exception:  # pragma: no cover - optional dependency surface
+    pass
+
+try:
+    from .web import api_bp, create_app, dashboard_bp
+
+    __all__.extend(["create_app", "api_bp", "dashboard_bp"])
+except Exception:  # pragma: no cover - optional dependency surface
+    pass
+
+VERSION = __version__
